@@ -49,9 +49,10 @@
   <script>
     (function(){
       var d=new Date();
-      if(d.getDate()===27&&d.getMonth()===4&&d.getFullYear()===1997){
+      var ok=d.getDate()===27&&d.getMonth()===4&&d.getFullYear()===1997;
+      if(ok){
         var el=document.createElement('div');
-        el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:clamp(1.2rem,4vw,2.5rem);font-family:serif;letter-spacing:0.15em;z-index:999;pointer-events:none;';
+        el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:clamp(1.2rem,4vw,2.5rem);font-family:serif;letter-spacing:0.15em;z-index:9998;pointer-events:none;white-space:nowrap;';
         var parts=['in','so','al','y',' ','fi','rs','t'];
         el.textContent=parts.join('');
         document.body.appendChild(el);
