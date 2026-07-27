@@ -69,6 +69,18 @@
       margin-top: 3vh;
     }
 
+    #mrdoc-flash {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: min(500px, 90vw);
+      max-height: 90vh;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
     @keyframes shimmer {
       0%   { background-position: 0% 50%; }
       50%  { background-position: 100% 50%; }
@@ -89,9 +101,11 @@
     </div>
     <canvas id="secret-canvas"></canvas>
   </div>
+  <img id="mrdoc-flash" src="mrdoc.png" alt="" />
+  <audio id="glitch-snd" src="glitch1.wav" preload="auto"></audio>
   <script>
     (function(){
-      // текст разбит на части и собирается в рантайме — в DOM не хранится
+ 
       var p=['an','ot','he','r ','ln','g'];
       var msg=p.join('');
       var c=document.getElementById('secret-canvas');
@@ -105,6 +119,22 @@
       ctx.fillStyle='rgba(255,255,255,0.01)';
       ctx.textBaseline='middle';
       ctx.fillText(msg,0,c.height/2);
+
+
+      var seq='';
+      var code=atob('bXJkb2M='); 
+      document.addEventListener('keydown', function(e){
+        seq=(seq+e.key).slice(-code.length);
+        if(seq===code){
+          seq='';
+          var img=document.getElementById('mrdoc-flash');
+          var snd=document.getElementById('glitch-snd');
+          img.style.display='block';
+          snd.currentTime=0;
+          snd.play();
+          setTimeout(function(){ img.style.display='none'; }, 1000);
+        }
+      });
     })();
   </script>
 </body>
