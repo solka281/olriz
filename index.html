@@ -37,11 +37,11 @@
       text-transform: lowercase;
       background: linear-gradient(
         135deg,
-        #c0c0c0 0%,
-        #ffffff 30%,
-        #a0a0a0 50%,
-        #ffffff 70%,
-        #888888 100%
+        #a855f7 0%,
+        #d946ef 25%,
+        #7c3aed 50%,
+        #c084fc 75%,
+        #a855f7 100%
       );
       background-size: 200% 200%;
       -webkit-background-clip: text;
@@ -64,16 +64,9 @@
       height: auto;
     }
 
-    /* Секретный текст — ниже порога восприятия глаза */
-    .secret {
-      font-family: 'Cinzel Decorative', serif;
-      font-size: clamp(0.9rem, 2.5vw, 1.6rem);
-      letter-spacing: 0.22em;
-      color: rgba(255, 255, 255, 0.01);
-      text-shadow: none;
+    #secret-canvas {
+      display: block;
       margin-top: 3vh;
-      user-select: none;
-      pointer-events: none;
     }
 
     @keyframes shimmer {
@@ -94,14 +87,24 @@
     <div class="tv-wrapper">
       <img src="tv.png" alt="" />
     </div>
+    <canvas id="secret-canvas"></canvas>
   </div>
   <script>
     (function(){
-      var s=document.createElement('span');
-      s.className='secret';
-      var t=atob('YW5vdGhlciBsbmc=');
-      s.appendChild(document.createTextNode(t));
-      document.querySelector('.container').appendChild(s);
+      // текст разбит на части и собирается в рантайме — в DOM не хранится
+      var p=['an','ot','he','r ','ln','g'];
+      var msg=p.join('');
+      var c=document.getElementById('secret-canvas');
+      var fs=Math.max(14, Math.round(window.innerWidth*0.022));
+      c.width=Math.round(msg.length*fs*0.72);
+      c.height=fs*2;
+      var ctx=c.getContext('2d');
+      ctx.clearRect(0,0,c.width,c.height);
+      ctx.font='700 '+fs+'px "Cinzel Decorative", serif';
+      ctx.letterSpacing='0.22em';
+      ctx.fillStyle='rgba(255,255,255,0.01)';
+      ctx.textBaseline='middle';
+      ctx.fillText(msg,0,c.height/2);
     })();
   </script>
 </body>
