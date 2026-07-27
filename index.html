@@ -69,6 +69,80 @@
       margin-top: 3vh;
     }
 
+    /* ── Сапёр ── */
+    #minesweeper {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    #ms-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #444;
+    }
+
+    #ms-bar span { color: #555; }
+
+    #ms-restart {
+      background: none;
+      border: 1px solid #222;
+      color: #444;
+      font-size: 11px;
+      padding: 2px 7px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: border-color .2s, color .2s;
+    }
+    #ms-restart:hover { border-color: #555; color: #888; }
+
+    #ms-grid {
+      display: grid;
+      gap: 2px;
+    }
+
+    .ms-cell {
+      width: 18px;
+      height: 18px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: transparent;
+      user-select: none;
+      transition: background .1s;
+    }
+    .ms-cell:hover { background: #1a1a1a; }
+    .ms-cell.revealed {
+      background: #0a0a0a;
+      border-color: #1a1a1a;
+      cursor: default;
+    }
+    .ms-cell.flagged { color: #7c3aed; }
+    .ms-cell.mine-hit { background: #3a0a0a; color: #ff3333; }
+
+    .ms-n1 { color: #4a9eff; }
+    .ms-n2 { color: #4aff7a; }
+    .ms-n3 { color: #ff4a4a; }
+    .ms-n4 { color: #7c3aed; }
+    .ms-n5 { color: #ff9900; }
+    .ms-n6 { color: #00ffcc; }
+    .ms-n7 { color: #ff66cc; }
+    .ms-n8 { color: #aaa; }
+
     @keyframes shimmer {
       0%   { background-position: 0% 50%; }
       50%  { background-position: 100% 50%; }
@@ -89,10 +163,21 @@
     </div>
     <canvas id="secret-canvas"></canvas>
   </div>
+
+  <!-- Сапёр -->
+  <div id="minesweeper">
+    <div id="ms-bar">
+      <span id="ms-mines">💣 0</span>
+      <span id="ms-status"></span>
+      <button id="ms-restart">restart</button>
+    </div>
+    <div id="ms-grid"></div>
+  </div>
+
   <audio id="glitch-snd" src="glitch1.wav" preload="auto"></audio>
   <script>
     (function(){
-
+      /* ── secret canvas ── */
       var p=['an','ot','he','r ','ln','g'];
       var msg=p.join('');
       var c=document.getElementById('secret-canvas');
@@ -107,7 +192,7 @@
       ctx.textBaseline='middle';
       ctx.fillText(msg,0,c.height/2);
 
-   
+      /* ── mrdoc easter egg ── */
       var seq='';
       var code=atob('bXJkb2M=');
       document.addEventListener('keydown', function(e){
@@ -124,6 +209,136 @@
           setTimeout(function(){ document.body.removeChild(img); }, 1000);
         }
       });
+
+      /* ── Minesweeper ── */
+      var ROWS=9, COLS=9, MINES=10;
+      var board, revealed, flagged, gameOver, firstClick;
+
+      function initBoard(){
+        board=[]; revealed=[]; flagged=[]; gameOver=false; firstClick=true;
+        for(var i=0;i<ROWS;i++){
+          board[i]=[]; revealed[i]=[]; flagged[i]=[];
+          for(var j=0;j<COLS;j++){
+            board[i][j]=0; revealed[i][j]=false; flagged[i][j]=false;
+          }
+        }
+        document.getElementById('ms-status').textContent='';
+        document.getElementById('ms-mines').textContent='💣 '+MINES;
+        renderGrid();
+      }
+
+      function placeMines(skipR, skipC){
+        var placed=0;
+        while(placed<MINES){
+          var r=Math.floor(Math.random()*ROWS);
+          var c=Math.floor(Math.random()*COLS);
+          if(board[r][c]===-1) continue;
+          if(Math.abs(r-skipR)<=1 && Math.abs(c-skipC)<=1) continue;
+          board[r][c]=-1; placed++;
+        }
+        for(var r=0;r<ROWS;r++)
+          for(var c=0;c<COLS;c++)
+            if(board[r][c]!==-1) board[r][c]=countAdj(r,c);
+      }
+
+      function countAdj(r,c){
+        var n=0;
+        for(var dr=-1;dr<=1;dr++)
+          for(var dc=-1;dc<=1;dc++){
+            var nr=r+dr, nc=c+dc;
+            if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&board[nr][nc]===-1) n++;
+          }
+        return n;
+      }
+
+      function reveal(r,c){
+        if(r<0||r>=ROWS||c<0||c>=COLS) return;
+        if(revealed[r][c]||flagged[r][c]) return;
+        revealed[r][c]=true;
+        if(board[r][c]===0)
+          for(var dr=-1;dr<=1;dr++)
+            for(var dc=-1;dc<=1;dc++)
+              reveal(r+dr,c+dc);
+      }
+
+      function countFlags(){
+        var n=0;
+        for(var r=0;r<ROWS;r++) for(var c=0;c<COLS;c++) if(flagged[r][c]) n++;
+        return n;
+      }
+
+      function checkWin(){
+        for(var r=0;r<ROWS;r++)
+          for(var c=0;c<COLS;c++)
+            if(board[r][c]!==-1 && !revealed[r][c]) return false;
+        return true;
+      }
+
+      function renderGrid(){
+        var grid=document.getElementById('ms-grid');
+        grid.style.gridTemplateColumns='repeat('+COLS+', 18px)';
+        grid.innerHTML='';
+        for(var r=0;r<ROWS;r++)
+          for(var c=0;c<COLS;c++){
+            var cell=document.createElement('div');
+            cell.className='ms-cell';
+            cell.dataset.r=r; cell.dataset.c=c;
+            if(revealed[r][c]){
+              cell.classList.add('revealed');
+              if(board[r][c]===-1){
+                cell.classList.add('mine-hit');
+                cell.textContent='✕';
+              } else if(board[r][c]>0){
+                cell.textContent=board[r][c];
+                cell.classList.add('ms-n'+board[r][c]);
+              }
+            } else if(flagged[r][c]){
+              cell.classList.add('flagged');
+              cell.textContent='⚑';
+            }
+            cell.addEventListener('click', onLeftClick);
+            cell.addEventListener('contextmenu', onRightClick);
+            grid.appendChild(cell);
+          }
+      }
+
+      function onLeftClick(e){
+        if(gameOver) return;
+        var r=+this.dataset.r, c=+this.dataset.c;
+        if(flagged[r][c]||revealed[r][c]) return;
+        if(firstClick){ placeMines(r,c); firstClick=false; }
+        if(board[r][c]===-1){
+          revealed[r][c]=true;
+          gameOver=true;
+          revealAllMines();
+          document.getElementById('ms-status').textContent='💀';
+          renderGrid(); return;
+        }
+        reveal(r,c);
+        if(checkWin()){
+          gameOver=true;
+          document.getElementById('ms-status').textContent='✓';
+        }
+        renderGrid();
+      }
+
+      function onRightClick(e){
+        e.preventDefault();
+        if(gameOver||revealed[+this.dataset.r][+this.dataset.c]) return;
+        var r=+this.dataset.r, c=+this.dataset.c;
+        flagged[r][c]=!flagged[r][c];
+        document.getElementById('ms-mines').textContent='💣 '+(MINES-countFlags());
+        renderGrid();
+      }
+
+      function revealAllMines(){
+        for(var r=0;r<ROWS;r++)
+          for(var c=0;c<COLS;c++)
+            if(board[r][c]===-1) revealed[r][c]=true;
+      }
+
+      document.getElementById('ms-restart').addEventListener('click', initBoard);
+      initBoard();
     })();
   </script>
 </body>
