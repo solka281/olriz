@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title></title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after {
       margin: 0;
@@ -30,31 +27,7 @@
       width: 100%;
     }
 
-    h1 {
-      font-family: 'Cinzel Decorative', serif;
-      font-size: clamp(2rem, 6vw, 5rem);
-      letter-spacing: 0.18em;
-      text-transform: lowercase;
-      background: linear-gradient(
-        135deg,
-        #a855f7 0%,
-        #d946ef 25%,
-        #7c3aed 50%,
-        #c084fc 75%,
-        #a855f7 100%
-      );
-      background-size: 200% 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: shimmer 4s ease-in-out infinite, fadeIn 1.8s ease forwards;
-      opacity: 0;
-      user-select: none;
-    }
-
     .tv-wrapper {
-      position: relative;
-      margin-top: 4vh;
       display: inline-block;
     }
 
@@ -63,50 +36,18 @@
       max-width: min(420px, 80vw);
       height: auto;
     }
-
-    #secret-canvas {
-      display: block;
-      margin-top: 3vh;
-    }
-
-    @keyframes shimmer {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    @keyframes fadeIn {
-      0%   { opacity: 0; transform: translateY(-12px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>follow me</h1>
     <div class="tv-wrapper">
       <img src="tv2.jpg" alt="" />
     </div>
-    <canvas id="secret-canvas"></canvas>
   </div>
 
   <audio id="glitch-snd" src="glitch1.wav" preload="auto"></audio>
   <script>
     (function(){
-      var p=['an','ot','he','r ','ln','g'];
-      var msg=p.join('');
-      var c=document.getElementById('secret-canvas');
-      var fs=Math.max(14, Math.round(window.innerWidth*0.022));
-      c.width=Math.round(msg.length*fs*0.72);
-      c.height=fs*2;
-      var ctx=c.getContext('2d');
-      ctx.clearRect(0,0,c.width,c.height);
-      ctx.font='700 '+fs+'px "Cinzel Decorative", serif';
-      ctx.letterSpacing='0.22em';
-      ctx.fillStyle='rgba(255,255,255,0.01)';
-      ctx.textBaseline='middle';
-      ctx.fillText(msg,0,c.height/2);
-
       var seq='';
       var code=atob('bXJkb2M=');
       document.addEventListener('keydown', function(e){
