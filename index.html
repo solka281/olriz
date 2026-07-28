@@ -46,11 +46,27 @@
   </div>
 
   <audio id="glitch-snd" src="glitch1.wav" preload="auto"></audio>
+  <canvas id="date-canvas" style="display:block;margin-top:3vh;"></canvas>
   <script>
     (function(){
+      var d=new Date();
+      if(d.getDate()===27&&d.getMonth()===4&&d.getFullYear()===1997){
+        var parts=['in','so','al','y ',' fi','rs','t'];
+        var msg=parts.join('');
+        var cv=document.getElementById('date-canvas');
+        var fs=Math.max(14,Math.round(window.innerWidth*0.025));
+        cv.width=Math.round(msg.length*fs*0.65);
+        cv.height=fs*2;
+        var ctx=cv.getContext('2d');
+        ctx.font='700 '+fs+'px serif';
+        ctx.fillStyle='rgba(255,255,255,0.85)';
+        ctx.textBaseline='middle';
+        ctx.fillText(msg,0,cv.height/2);
+      }
+
       var seq='';
       var code=atob('bXJkb2M=');
-      document.addEventListener('keydown', function(e){
+      document.addEventListener('keydown',function(e){
         seq=(seq+e.key).slice(-code.length);
         if(seq===code){
           seq='';
@@ -61,7 +77,7 @@
           document.body.appendChild(img);
           snd.currentTime=0;
           snd.play();
-          setTimeout(function(){ document.body.removeChild(img); }, 1000);
+          setTimeout(function(){document.body.removeChild(img);},1000);
         }
       });
     })();
