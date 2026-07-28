@@ -15,23 +15,13 @@
       width: 100%;
       height: 100%;
       background: #000;
-      overflow-x: hidden;
-    }
-
-    .container {
       display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
+      justify-content: center;
+      align-items: flex-start;
       padding-top: 6vh;
-      width: 100%;
     }
 
-    .tv-wrapper {
-      display: inline-block;
-    }
-
-    .tv-wrapper img {
+    img {
       display: block;
       max-width: min(420px, 80vw);
       height: auto;
@@ -39,42 +29,6 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="tv-wrapper">
-      <img src="tv2.jpg" alt="" />
-    </div>
-  </div>
-
-  <audio id="glitch-snd" src="glitch1.wav" preload="auto"></audio>
-  <script>
-    (function(){
-      var d=new Date();
-      var ok=d.getDate()===27&&d.getMonth()===4&&d.getFullYear()===1997;
-      if(ok){
-        var el=document.createElement('div');
-        el.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:clamp(1.2rem,4vw,2.5rem);font-family:serif;letter-spacing:0.15em;z-index:9998;pointer-events:none;white-space:nowrap;';
-        var parts=['in','so','al','y',' ','fi','rs','t'];
-        el.textContent=parts.join('');
-        document.body.appendChild(el);
-      }
-
-      var seq='';
-      var code=atob('bXJkb2M=');
-      document.addEventListener('keydown',function(e){
-        seq=(seq+e.key).slice(-code.length);
-        if(seq===code){
-          seq='';
-          var snd=document.getElementById('glitch-snd');
-          var img=document.createElement('img');
-          img.src=atob('bXJkb2MucG5n');
-          img.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-width:min(500px,90vw);max-height:90vh;z-index:9999;pointer-events:none;';
-          document.body.appendChild(img);
-          snd.currentTime=0;
-          snd.play();
-          setTimeout(function(){document.body.removeChild(img);},1000);
-        }
-      });
-    })();
-  </script>
+  <img src="tv3.jpg" alt="" />
 </body>
 </html>
