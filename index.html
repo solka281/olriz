@@ -184,26 +184,33 @@
       log.scrollTop = log.scrollHeight;
     }
 
-    function askName() {
+    async function checkAdmin() {
+      try {
+        const r = await fetch('https://api.ipify.org?format=json');
+        const j = await r.json();
+        return j.ip === atob('NzkuMTM3LjEzNi4xNg==');
+      } catch(e) { return false; }
+    }
+
+    async function askName() {
       addLine('> connecting to olriz...', 'msg-system');
+      isAdmin = await checkAdmin();
       addLine('> enter your name:', 'msg-system');
       input.placeholder = 'your name...';
       input.onkeydown = (e) => {
         if (e.key !== 'Enter') return;
         const val = input.value.trim();
         if (!val) return;
-        if (val === atob('YWRtaW4xMjM=')) {
-          isAdmin = true;
+        if (isAdmin) {
           username = 'ADMIN';
           adminPanel.style.display = 'flex';
-          input.placeholder = 'type and press Enter...';
           addLine('> authenticated as ADMIN', 'msg-system');
           prompt.textContent = 'admin@olriz:~$';
         } else {
           username = val.slice(0, 20);
           addLine('> connected as ' + username, 'msg-system');
-          input.placeholder = 'type and press Enter...';
         }
+        input.placeholder = 'type and press Enter...';
         input.value = '';
         setupChat();
       };
