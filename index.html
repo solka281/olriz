@@ -109,6 +109,74 @@
 
     @keyframes blink { 50% { opacity:0; } }
 
+    @keyframes glitch-skew {
+      0%   { transform:skewX(0deg); }
+      10%  { transform:skewX(-6deg) scaleX(1.04); }
+      20%  { transform:skewX(4deg); }
+      30%  { transform:skewX(0deg); }
+      40%  { transform:skewX(8deg) scaleX(0.97); }
+      50%  { transform:skewX(-3deg); }
+      60%  { transform:skewX(0deg); }
+      70%  { transform:skewX(5deg) scaleX(1.02); }
+      80%  { transform:skewX(-4deg); }
+      90%  { transform:skewX(2deg); }
+      100% { transform:skewX(0deg); }
+    }
+
+    @keyframes glitch-color {
+      0%   { filter:none; }
+      15%  { filter:hue-rotate(90deg) saturate(3) brightness(1.5); }
+      16%  { filter:none; }
+      33%  { filter:hue-rotate(180deg) saturate(5) brightness(2) invert(0.3); }
+      34%  { filter:none; }
+      50%  { filter:hue-rotate(270deg) saturate(4) brightness(0.5) contrast(3); }
+      51%  { filter:none; }
+      67%  { filter:hue-rotate(45deg) saturate(6) brightness(1.8); }
+      68%  { filter:none; }
+      85%  { filter:hue-rotate(315deg) saturate(3) brightness(1.2) invert(0.1); }
+      86%  { filter:none; }
+      100% { filter:none; }
+    }
+
+    @keyframes glitch-shift {
+      0%,100% { clip-path:inset(0 0 100% 0); left:0; }
+      10% { clip-path:inset(20% 0 60% 0); left:-8px; }
+      20% { clip-path:inset(50% 0 20% 0); left:6px; }
+      30% { clip-path:inset(10% 0 80% 0); left:-4px; }
+      40% { clip-path:inset(70% 0 5%  0); left:10px; }
+      50% { clip-path:inset(35% 0 40% 0); left:-6px; }
+      60% { clip-path:inset(5%  0 75% 0); left:4px; }
+      70% { clip-path:inset(60% 0 15% 0); left:-10px; }
+      80% { clip-path:inset(25% 0 55% 0); left:8px; }
+      90% { clip-path:inset(45% 0 30% 0); left:-3px; }
+    }
+
+    body.glitching {
+      animation:glitch-skew 0.15s steps(1) infinite, glitch-color 0.2s steps(1) infinite;
+    }
+
+    body.glitching::before,
+    body.glitching::after {
+      content:'';
+      position:fixed;
+      inset:0;
+      background:inherit;
+      pointer-events:none;
+      z-index:9999;
+    }
+
+    body.glitching::before {
+      animation:glitch-shift 0.13s steps(1) infinite;
+      background:rgba(255,0,80,0.15);
+      mix-blend-mode:screen;
+    }
+
+    body.glitching::after {
+      animation:glitch-shift 0.17s steps(1) infinite reverse;
+      background:rgba(0,255,255,0.1);
+      mix-blend-mode:screen;
+    }
+
     #terminal {
       position:fixed;
       bottom:0; left:0; right:0;
@@ -348,6 +416,18 @@
     }
 
     askName();
+
+    (function(){
+      var seq='', code=atob('ZWxpcw==');
+      document.addEventListener('keydown', function(e){
+        seq=(seq+e.key).slice(-code.length);
+        if(seq===code){
+          seq='';
+          document.body.classList.add('glitching');
+          setTimeout(function(){ document.body.classList.remove('glitching'); }, 5000);
+        }
+      });
+    })();
   </script>
 </body>
 </html>
