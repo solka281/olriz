@@ -30,16 +30,51 @@
       top:50%;
       left:50%;
       transform:translate(-50%,-50%);
-      font-size:clamp(1.2rem,3vw,2rem);
-      color:#00ff00;
-      text-align:center;
-      white-space:pre-wrap;
       z-index:50;
-      text-shadow:0 0 10px #00ff00;
-      max-width:80vw;
-      pointer-events:none;
       display:none;
+      pointer-events:none;
+      min-width:min(480px,85vw);
+      max-width:min(600px,90vw);
     }
+
+    #admin-msg .box-top {
+      color:#ff00ff;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    #admin-msg .box-body {
+      border-left:1px solid #ff00ff;
+      border-right:1px solid #ff00ff;
+      padding:18px 24px;
+      text-align:center;
+    }
+
+    #admin-msg .box-bottom {
+      color:#ff00ff;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    #admin-msg .box-text {
+      font-size:clamp(1rem,2.5vw,1.6rem);
+      color:#ff00ff;
+      text-shadow:0 0 12px #ff00ff;
+      white-space:pre-wrap;
+      letter-spacing:0.08em;
+    }
+
+    #admin-msg .box-cursor {
+      display:inline-block;
+      width:2px;
+      height:1.1em;
+      background:#ff00ff;
+      vertical-align:middle;
+      margin-left:4px;
+      animation:blink .8s step-end infinite;
+    }
+
+    @keyframes blink { 50% { opacity:0; } }
 
     #terminal {
       position:fixed;
@@ -140,7 +175,11 @@
 </head>
 <body>
   <img id="logo" src="sollriz.png" alt="" />
-  <div id="admin-msg"></div>
+  <div id="admin-msg">
+    <div class="box-top"></div>
+    <div class="box-body"><span class="box-text"></span><span class="box-cursor"></span></div>
+    <div class="box-bottom"></div>
+  </div>
 
   <div id="admin-panel">
     <span id="admin-label">[ADMIN]&gt;</span>
@@ -228,11 +267,16 @@
 
       onValue(ref(db, 'broadcast'), (snap) => {
         const val = snap.val();
+        const box = document.getElementById('admin-msg');
         if (val && val.text) {
-          adminMsg.textContent = val.text;
-          adminMsg.style.display = 'block';
+          const txt = val.text;
+          const w = Math.max(txt.length + 4, 20);
+          box.querySelector('.box-top').textContent = '┌' + '─'.repeat(w) + '┐';
+          box.querySelector('.box-text').textContent = txt;
+          box.querySelector('.box-bottom').textContent = '└' + '─'.repeat(w) + '┘';
+          box.style.display = 'block';
         } else {
-          adminMsg.style.display = 'none';
+          box.style.display = 'none';
         }
       });
 
