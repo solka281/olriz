@@ -5,30 +5,260 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title></title>
   <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     html, body {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 6vh;
+      width:100%; height:100%;
+      background:#000;
+      color:#00ff00;
+      font-family:'Courier New', monospace;
+      overflow:hidden;
     }
 
-    img {
-      display: block;
-      max-width: min(1240px, 240vw);
-      height: auto;
+    #main-img {
+      display:block;
+      max-width:min(420px,80vw);
+      height:auto;
+      position:absolute;
+      top:6vh;
+      left:50%;
+      transform:translateX(-50%);
     }
+
+    #admin-msg {
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-size:clamp(1.2rem,3vw,2rem);
+      color:#00ff00;
+      text-align:center;
+      white-space:pre-wrap;
+      z-index:50;
+      text-shadow:0 0 10px #00ff00;
+      max-width:80vw;
+      pointer-events:none;
+      display:none;
+    }
+
+    #terminal {
+      position:fixed;
+      bottom:0; left:0; right:0;
+      height:220px;
+      background:rgba(0,0,0,0.92);
+      border-top:1px solid #003300;
+      display:flex;
+      flex-direction:column;
+      z-index:100;
+    }
+
+    #chat-log {
+      flex:1;
+      overflow-y:auto;
+      padding:8px 12px;
+      font-size:12px;
+      line-height:1.6;
+    }
+
+    #chat-log::-webkit-scrollbar { width:4px; }
+    #chat-log::-webkit-scrollbar-thumb { background:#003300; }
+
+    .msg-user { color:#00ff00; }
+    .msg-admin { color:#ff00ff; text-shadow:0 0 6px #ff00ff; }
+    .msg-system { color:#004400; }
+
+    #input-row {
+      display:flex;
+      align-items:center;
+      padding:6px 12px;
+      border-top:1px solid #003300;
+      gap:6px;
+    }
+
+    #prompt { color:#00ff00; font-size:12px; white-space:nowrap; }
+
+    #chat-input {
+      flex:1;
+      background:none;
+      border:none;
+      outline:none;
+      color:#00ff00;
+      font-family:'Courier New', monospace;
+      font-size:12px;
+      caret-color:#00ff00;
+    }
+
+    #admin-panel {
+      position:fixed;
+      top:0; left:0; right:0;
+      background:rgba(0,0,0,0.95);
+      border-bottom:1px solid #330033;
+      padding:8px 12px;
+      display:none;
+      gap:8px;
+      align-items:center;
+      z-index:200;
+    }
+
+    #admin-label { color:#ff00ff; font-size:12px; white-space:nowrap; }
+
+    #admin-input {
+      flex:1;
+      background:none;
+      border:none;
+      border-bottom:1px solid #550055;
+      outline:none;
+      color:#ff00ff;
+      font-family:'Courier New', monospace;
+      font-size:12px;
+      caret-color:#ff00ff;
+      padding:2px 0;
+    }
+
+    #admin-send {
+      background:none;
+      border:1px solid #550055;
+      color:#ff00ff;
+      font-family:'Courier New', monospace;
+      font-size:11px;
+      padding:2px 10px;
+      cursor:pointer;
+    }
+    #admin-send:hover { background:#1a001a; }
+
+    #admin-clear {
+      background:none;
+      border:1px solid #330033;
+      color:#550055;
+      font-family:'Courier New', monospace;
+      font-size:11px;
+      padding:2px 10px;
+      cursor:pointer;
+    }
+    #admin-clear:hover { background:#0a000a; }
   </style>
 </head>
 <body>
-  <img src="tiser1.jpg" alt="" />
+  <img id="main-img" src="bruh.jpg" alt="" />
+  <div id="admin-msg"></div>
+
+  <div id="admin-panel">
+    <span id="admin-label">[ADMIN]&gt;</span>
+    <input id="admin-input" type="text" placeholder="broadcast message..." autocomplete="off" />
+    <button id="admin-send">send</button>
+    <button id="admin-clear">clear</button>
+  </div>
+
+  <div id="terminal">
+    <div id="chat-log"></div>
+    <div id="input-row">
+      <span id="prompt">guest@olriz:~$</span>
+      <input id="chat-input" type="text" autocomplete="off" maxlength="200" placeholder="type and press Enter..." />
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase, ref, push, onChildAdded, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+    const app = initializeApp({
+      databaseURL: 'https://sollriz-default-rtdb.europe-west1.firebasedatabase.app'
+    });
+    const db = getDatabase(app);
+
+    const log = document.getElementById('chat-log');
+    const input = document.getElementById('chat-input');
+    const adminPanel = document.getElementById('admin-panel');
+    const adminInput = document.getElementById('admin-input');
+    const adminMsg = document.getElementById('admin-msg');
+    const prompt = document.getElementById('prompt');
+
+    let username = '';
+    let isAdmin = false;
+
+    function addLine(text, cls) {
+      const d = document.createElement('div');
+      d.className = cls || 'msg-user';
+      d.textContent = text;
+      log.appendChild(d);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function askName() {
+      addLine('> connecting to olriz...', 'msg-system');
+      addLine('> enter your name:', 'msg-system');
+      input.placeholder = 'your name...';
+      input.onkeydown = (e) => {
+        if (e.key !== 'Enter') return;
+        const val = input.value.trim();
+        if (!val) return;
+        if (val === atob('YWRtaW4xMjM=')) {
+          isAdmin = true;
+          username = 'ADMIN';
+          adminPanel.style.display = 'flex';
+          input.placeholder = 'type and press Enter...';
+          addLine('> authenticated as ADMIN', 'msg-system');
+          prompt.textContent = 'admin@olriz:~$';
+        } else {
+          username = val.slice(0, 20);
+          addLine('> connected as ' + username, 'msg-system');
+          input.placeholder = 'type and press Enter...';
+        }
+        input.value = '';
+        setupChat();
+      };
+    }
+
+    function setupChat() {
+      onChildAdded(ref(db, 'chat'), (snap) => {
+        const m = snap.val();
+        if (m.admin) {
+          addLine('[ADMIN] ' + m.text, 'msg-admin');
+        } else {
+          addLine('[' + m.user + '] ' + m.text, 'msg-user');
+        }
+      });
+
+      onValue(ref(db, 'broadcast'), (snap) => {
+        const val = snap.val();
+        if (val && val.text) {
+          adminMsg.textContent = val.text;
+          adminMsg.style.display = 'block';
+        } else {
+          adminMsg.style.display = 'none';
+        }
+      });
+
+      input.onkeydown = (e) => {
+        if (e.key !== 'Enter') return;
+        const val = input.value.trim();
+        if (!val) return;
+        push(ref(db, 'chat'), {
+          user: username,
+          text: val,
+          admin: isAdmin,
+          ts: Date.now()
+        });
+        input.value = '';
+      };
+
+      if (isAdmin) {
+        document.getElementById('admin-send').onclick = () => {
+          const val = adminInput.value.trim();
+          if (!val) return;
+          set(ref(db, 'broadcast'), { text: val });
+          adminInput.value = '';
+        };
+        adminInput.onkeydown = (e) => {
+          if (e.key === 'Enter') document.getElementById('admin-send').click();
+        };
+        document.getElementById('admin-clear').onclick = () => {
+          remove(ref(db, 'broadcast'));
+        };
+      }
+    }
+
+    askName();
+  </script>
 </body>
 </html>
